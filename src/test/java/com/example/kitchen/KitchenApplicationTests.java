@@ -13,6 +13,8 @@ import java.util.List;
 @SpringBootTest
 class KitchenApplicationTests {
 
-	@Test
+    @Test
+    void contextLoads() {
 
+    }
 }
