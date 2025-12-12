@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin("*")
+@RequestMapping("/api/")
 public class DishController {
     @Autowired
     private final DishService dishService;

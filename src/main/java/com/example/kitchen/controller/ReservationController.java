@@ -3,11 +3,15 @@ package com.example.kitchen.controller;
 import com.example.kitchen.service.ReservationService;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/api/")
+@CrossOrigin("*")
 public class ReservationController {
 
     @Autowired
