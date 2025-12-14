@@ -48,7 +48,7 @@ public class AuthenticationService {
             User authenticatedUser = userDao.getUserByPhone(loginRequestDto.getPhoneNo()).orElseThrow();
             String jwtToken = jwtService.generateToken(authenticatedUser);
             long expirationTime = jwtService.getExpirationTime();
-            return ResponseDto.successResponse(jwtToken, CommonConstants.SUCCESS, expirationTime);
+            return ResponseDto.successResponse(jwtToken, CommonConstants.LOGED_IN, expirationTime);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
