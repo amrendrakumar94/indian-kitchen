@@ -2,6 +2,7 @@ package com.example.kitchen.daoImplementation;
 
 import com.example.kitchen.dao.DishDao;
 import com.example.kitchen.modal.DishDetails;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -14,11 +15,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
+@RequiredArgsConstructor
 @Repository
 public class DishDaoImplementation implements DishDao {
-    @Autowired
-    private SessionFactory sessionFactory;
+    
+    private final SessionFactory sessionFactory;
 
     @Override
     public List<DishDetails> getDishDetailsList(String cuisineType) {

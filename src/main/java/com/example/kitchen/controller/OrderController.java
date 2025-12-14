@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin("*")
 @RequestMapping("/api/")
 public class OrderController {
-    @Autowired
+    
     private final OrderService orderService;
 
     public OrderController(OrderService orderService) {

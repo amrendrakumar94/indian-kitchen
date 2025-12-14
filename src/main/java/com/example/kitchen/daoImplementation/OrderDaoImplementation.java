@@ -2,21 +2,19 @@ package com.example.kitchen.daoImplementation;
 
 import com.example.kitchen.dao.OrderDao;
 import com.example.kitchen.modal.OrderedDetails;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
+@Slf4j
 public class OrderDaoImplementation implements OrderDao {
 
-    private Logger logger;
-    @Autowired
     SessionFactory sessionFactory;
 
     @Override
@@ -31,7 +29,7 @@ public class OrderDaoImplementation implements OrderDao {
             query.setParameter("USER_ID", userId);
             orderedDetailsList = query.getResultList();
         } catch (Exception e) {
-            logger.error("error in getAllOrderByUserId()!", e);
+            log.error("error in getAllOrderByUserId()!", e);
         } finally {
             if (tx != null) {
                 tx.rollback();

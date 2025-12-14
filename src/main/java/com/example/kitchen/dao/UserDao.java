@@ -1,15 +1,16 @@
 package com.example.kitchen.dao;
 
 import com.example.kitchen.modal.CartDetails;
-import com.example.kitchen.modal.UserDetails;
+import com.example.kitchen.modal.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserDao {
-    boolean saveUserDetails(UserDetails userDetails);
+    boolean saveOrUpdateUser(User user);
 
 
-    UserDetails getUserDetailsByEmail(String email);
+    Optional<User> getUserByPhone(String phoneNumber);
 
     boolean addToCart(CartDetails cartDetails);
 

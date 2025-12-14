@@ -13,7 +13,7 @@ import java.util.List;
 @CrossOrigin("*")
 @RequestMapping("/api/")
 public class DishController {
-    @Autowired
+    
     private final DishService dishService;
 
     public DishController(DishService dishService) {

@@ -2,68 +2,52 @@ package com.example.kitchen.daoImplementation;
 
 import com.example.kitchen.dao.UserDao;
 import com.example.kitchen.modal.CartDetails;
-import com.example.kitchen.modal.UserDetails;
+import com.example.kitchen.modal.User;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
+@RequiredArgsConstructor
+@Slf4j
 @Repository
 public class UserDaoImplementation implements UserDao {
-    private Logger logger;
-
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     @Override
-    public boolean saveUserDetails(UserDetails userDetails) {
-        Session session = null;
+    public boolean saveOrUpdateUser(User user) {
         Transaction tx = null;
-        try {
-            session = sessionFactory.openSession();
+        try (Session session = sessionFactory.openSession()) {
             tx = session.beginTransaction();
-            session.saveOrUpdate(userDetails);
+            session.saveOrUpdate(user);
             tx.commit();
-        } catch (Exception e) {
-            logger.error("error in saveUserDetails()!");
-        } finally {
-            if (tx != null && session != null && session.isOpen()) {
-                session.close();
-                tx.rollback();
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public UserDetails getUserDetailsByEmail(String email) {
-        Session session = null;
-        Transaction tx = null;
-        UserDetails userDetails = null;
-        try {
-            session = sessionFactory.openSession();
-            tx = session.beginTransaction();
-            Query<UserDetails> query = session.createQuery("FROM UserDetails WHERE email = :EMAIL", UserDetails.class);
-            query.setParameter("EMAIL", email);
-            userDetails = query.uniqueResult();
-            tx.commit();
+            return true;
         } catch (Exception e) {
             if (tx != null) {
                 tx.rollback();
             }
-            return userDetails;
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
-            }
+            log.error("Error in saveOrUpdateUser() ", e);
         }
-        return userDetails;
+        return false;
     }
+
+
+    @Override
+    public Optional<User> getUserByPhone(String phone) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM User u WHERE u.phoneNo = :phone", User.class).setParameter("phone", phone).uniqueResultOptional();
+        } catch (Exception e) {
+            log.error("Error in getUserByPhone() ", e);
+            return Optional.empty();
+        }
+    }
+
 
     @Override
     public boolean addToCart(CartDetails cartDetails) {
@@ -76,7 +60,7 @@ public class UserDaoImplementation implements UserDao {
             tx.commit();
             return true;
         } catch (Exception e) {
-            logger.error("Error in ", e);
+            log.error("Error in ", e);
         } finally {
             if (session != null && session.isOpen()) {
                 session.close();

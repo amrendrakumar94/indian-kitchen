@@ -2,21 +2,19 @@ package com.example.kitchen.daoImplementation;
 
 import com.example.kitchen.dao.ReservationDao;
 import com.example.kitchen.modal.ReservationDetails;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
+@Slf4j
 public class ReservationDaoImplementation implements ReservationDao {
-    @Autowired
     SessionFactory sessionFactory;
-    private Logger logger;
 
     @Override
     public List<ReservationDetails> getReservationDetailsByUserId(int userId) {
@@ -30,7 +28,7 @@ public class ReservationDaoImplementation implements ReservationDao {
             query.setParameter("USER_ID", userId);
             reservationDetailsList = query.getResultList();
         } catch (Exception e) {
-            logger.error("error in getReservationDetailsByUserId()!", e);
+            log.error("error in getReservationDetailsByUserId()!", e);
         } finally {
             if (tx != null) {
                 tx.rollback();

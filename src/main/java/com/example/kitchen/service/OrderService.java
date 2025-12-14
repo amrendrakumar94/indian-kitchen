@@ -3,22 +3,20 @@ package com.example.kitchen.service;
 import com.example.kitchen.dao.OrderDao;
 import com.example.kitchen.modal.OrderedDetails;
 import com.example.kitchen.util.CommonUtils;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrderService {
-    @Autowired
-    private OrderDao orderDao;
-
-    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+    private final OrderDao orderDao;
 
     public JSONArray getOrderList(int userId) {
         JSONArray jsonArray = new JSONArray();
@@ -29,7 +27,7 @@ public class OrderService {
                 jsonArray = JSONArray.fromObject(orderedDetailsList);
             }
         } catch (Exception e) {
-            logger.error("error in getOrderList()!", 2);
+            log.error("error in getOrderList()!", 2);
         }
         return jsonArray;
     }
@@ -43,8 +41,8 @@ public class OrderService {
 
                 if (userId > 0 && CommonUtils.isNotNullAndNotEmpty(address) && CommonUtils.isNotNullAndNotEmpty(orderIds)) {
                     List<OrderedDetails> orderedDetailList = orderDao.getAllOrderByUserId(userId);
-                    if(orderedDetailList!=null && !orderedDetailList.isEmpty()){
-                        
+                    if (orderedDetailList != null && !orderedDetailList.isEmpty()) {
+
                     }
                     OrderedDetails orderedDetails = new OrderedDetails();
                     orderedDetails.setOrderIds(orderIds);
@@ -57,7 +55,7 @@ public class OrderService {
 
             }
         } catch (Exception e) {
-            logger.error("", e);
+            log.error("", e);
         }
         return false;
     }

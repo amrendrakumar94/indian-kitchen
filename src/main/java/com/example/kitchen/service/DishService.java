@@ -6,24 +6,21 @@ import com.example.kitchen.dto.DishDetailsDto;
 import com.example.kitchen.modal.CartDetails;
 import com.example.kitchen.modal.DishDetails;
 import com.example.kitchen.util.CommonUtils;
-import net.sf.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class DishService {
-    @Autowired
-    private DishDao dishDao;
 
-    @Autowired
-    private UserDao userDao;
+    private final DishDao dishDao;
+    private final UserDao userDao;
 
-    private static final Logger logger = LoggerFactory.getLogger(DishService.class);
 
     public DishDetailsDto getAllDishes(int userId, String cuisineType) {
         DishDetailsDto dishDetailsDto = new DishDetailsDto();
@@ -55,7 +52,7 @@ public class DishService {
             dishDetailsDto.setDishDetails(dishDetailsList);
             dishDetailsDto.setDishIds(dishIds);
         } catch (Exception e) {
-            logger.error("Error in getAllDishes(). ", e);
+            log.error("Error in getAllDishes(). ", e);
         }
         return dishDetailsDto;
     }
@@ -65,7 +62,7 @@ public class DishService {
             List<DishDetails> dishDetailsList = dishDao.getDishDetailsByDishIds(dishIds);
             return dishDetailsList;
         } catch (Exception e) {
-            logger.error("Error in getDishDetailsByDishIds(). ", e);
+            log.error("Error in getDishDetailsByDishIds(). ", e);
         }
         return null;
     }

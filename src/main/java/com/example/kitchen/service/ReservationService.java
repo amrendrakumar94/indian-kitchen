@@ -2,20 +2,19 @@ package com.example.kitchen.service;
 
 import com.example.kitchen.dao.ReservationDao;
 import com.example.kitchen.modal.ReservationDetails;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class ReservationService {
-    @Autowired
-    private ReservationDao reservationDao;
-    private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
+    private final ReservationDao reservationDao;
 
     public JSONObject getReservationDetails(JSONObject jsonObj) {
         JSONObject reservationJsonObject = new JSONObject();
@@ -30,7 +29,7 @@ public class ReservationService {
             }
 
         } catch (Exception e) {
-            logger.error("error in getReservationDetails()!", e);
+            log.error("error in getReservationDetails()!", e);
         }
         return reservationJsonObject;
     }
