@@ -1,21 +1,18 @@
 package com.example.kitchen.controller;
 
 import com.example.kitchen.service.OrderService;
+import lombok.RequiredArgsConstructor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin("*")
+@RequiredArgsConstructor
 @RequestMapping("/api/")
 public class OrderController {
-    
-    private final OrderService orderService;
 
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
-    }
+    private final OrderService orderService;
 
     @GetMapping("get-order-details/{userId}")
     public JSONArray getOrderList(@PathVariable int userId) {

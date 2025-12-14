@@ -21,9 +21,9 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final UserDao userDao;
+    private final PasswordEncoder       passwordEncoder;
+    private final JwtService            jwtService;
+    private final UserDao               userDao;
 
     public ResponseEntity<ResponseDto> handleSignup(SignupRequestDto signupRequestDto) {
         try {
@@ -48,7 +48,7 @@ public class AuthenticationService {
             User authenticatedUser = userDao.getUserByPhone(loginRequestDto.getPhoneNo()).orElseThrow();
             String jwtToken = jwtService.generateToken(authenticatedUser);
             long expirationTime = jwtService.getExpirationTime();
-            return ResponseDto.successResponse(jwtToken, CommonConstants.SUCCESS);
+            return ResponseDto.successResponse(jwtToken, CommonConstants.SUCCESS, expirationTime);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
