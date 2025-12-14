@@ -1,8 +1,10 @@
 package com.example.kitchen.config;
 
+import com.example.kitchen.constants.CommonConstants;
 import com.example.kitchen.service.JwtService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.sf.json.JSONObject;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,12 +40,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String jwt = authHeader.substring(7);
-            final String userEmail = jwtService.extractUsername(jwt);
-
+            final String userName = jwtService.extractUsername(jwt);
+            if (userName == null) {
+                sendUserNotFound(response);
+                return;
+            }
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            if (userEmail != null && authentication == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            if (authentication == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userName);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -57,5 +61,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception exception) {
             exceptionResolver.resolveException(request, response, null, exception);
         }
+    }
+
+    private void sendUserNotFound(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("message", CommonConstants.USER_NOT_FOUND);
+        jsonObject.put("status", false);
+        response.getWriter().write(jsonObject.toString());
     }
 }
