@@ -28,7 +28,7 @@ public class AuthenticationService {
     public ResponseEntity<ResponseDto> handleSignup(SignupRequestDto signupRequestDto) {
         try {
             if (userDao.getUserByPhone(signupRequestDto.getPhoneNo()).isPresent()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                return ResponseDto.successResponse(null, CommonConstants.USER_ALREADY_EXISTS);
             }
             User user = new User();
             user.setPhoneNo(signupRequestDto.getPhoneNo());
@@ -39,7 +39,7 @@ public class AuthenticationService {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseDto.errorResponse();
     }
 
     public ResponseEntity<ResponseDto> handleLogin(LoginRequestDto loginRequestDto) {
@@ -52,6 +52,6 @@ public class AuthenticationService {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseDto.errorResponse();
     }
 }

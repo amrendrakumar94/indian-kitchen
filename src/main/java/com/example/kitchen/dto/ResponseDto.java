@@ -15,7 +15,7 @@ public class ResponseDto {
         ResponseDto responseDto = new ResponseDto();
         responseDto.setStatus(true);
         responseDto.setData(data);
-        responseDto.setMessage("Success");
+        responseDto.setMessage(CommonConstants.SUCCESS);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -27,24 +27,20 @@ public class ResponseDto {
         return ResponseEntity.ok(responseDto);
     }
 
-    public static ResponseEntity<ResponseDto> errorResponse(Exception e) {
-        ResponseDto responseDto = new ResponseDto();
-        responseDto.setMessage(CommonConstants.SOMETHING_WENT_WRONG);
-        responseDto.setData(e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDto);
-    }
-
-    public static ResponseEntity<ResponseDto> errorResponse(HttpStatus httpStatus, String message) {
-        ResponseDto responseDto = new ResponseDto();
-        responseDto.setMessage(message);
-        return ResponseEntity.status(httpStatus).body(responseDto);
-    }
 
     public static ResponseEntity<ResponseDto> errorResponse(String data, String message) {
         ResponseDto responseDto = new ResponseDto();
         responseDto.setMessage(message);
         responseDto.setStatus(false);
         responseDto.setData(data);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    public static ResponseEntity<ResponseDto> errorResponse() {
+        ResponseDto responseDto = new ResponseDto();
+        responseDto.setMessage(CommonConstants.SOMETHING_WENT_WRONG);
+        responseDto.setStatus(false);
+        responseDto.setData(null);
         return ResponseEntity.ok(responseDto);
     }
 }
