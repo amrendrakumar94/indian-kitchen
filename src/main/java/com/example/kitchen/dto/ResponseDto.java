@@ -14,7 +14,7 @@ public class ResponseDto {
     private String status;
     private Object data;
     private String token;
-    private long   tokenExpire;
+    private Long   tokenExpire;
 
     public static ResponseEntity<ResponseDto> successResponse(Object data) {
         ResponseDto responseDto = new ResponseDto();

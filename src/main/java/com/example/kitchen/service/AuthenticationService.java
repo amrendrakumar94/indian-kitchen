@@ -28,7 +28,7 @@ public class AuthenticationService {
     public ResponseEntity<ResponseDto> handleSignup(SignupRequestDto signupRequestDto) {
         try {
             if (userDao.getUserByPhone(signupRequestDto.getPhoneNo()).isPresent()) {
-                return ResponseDto.successResponse(null, CommonConstants.USER_ALREADY_EXISTS);
+                return ResponseDto.errorResponse(null, CommonConstants.USER_ALREADY_EXISTS);
             }
             User user = new User();
             user.setPhoneNo(signupRequestDto.getPhoneNo());
