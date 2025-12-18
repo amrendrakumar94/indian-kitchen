@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/noauth/api/")
+@RequestMapping("/api/")
 public class DishController {
 
     private final DishService dishService;
