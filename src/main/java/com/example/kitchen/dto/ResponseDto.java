@@ -1,5 +1,6 @@
 package com.example.kitchen.dto;
 
+import com.example.kitchen.modal.User;
 import org.springframework.http.ResponseEntity;
 
 import com.example.kitchen.constants.CommonConstants;
@@ -15,6 +16,14 @@ public class ResponseDto {
     private Object data;
     private String token;
     private Long   tokenExpire;
+
+    @Data
+    static class UserDetailsDto {
+        private String name;
+        private String email;
+        private String phone;
+        private String address;
+    }
 
     public static ResponseEntity<ResponseDto> successResponse(Object data) {
         ResponseDto responseDto = new ResponseDto();
@@ -32,12 +41,18 @@ public class ResponseDto {
         return ResponseEntity.ok(responseDto);
     }
 
-    public static ResponseEntity<ResponseDto> successResponse(String token, String message, long expirationTime) {
+    public static ResponseEntity<ResponseDto> successResponse(String token, User user, String message, long expirationTime) {
         ResponseDto responseDto = new ResponseDto();
         responseDto.setStatus(CommonConstants.SUCCESS);
         responseDto.setToken(token);
         responseDto.setTokenExpire(expirationTime);
         responseDto.setMessage(message);
+        UserDetailsDto data = new UserDetailsDto();
+        data.setName(user.getName());
+        data.setEmail(user.getEmail());
+        data.setAddress("");
+        data.setPhone(user.getPhoneNo());
+        responseDto.setData(data);
         return ResponseEntity.ok(responseDto);
     }
 

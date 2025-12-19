@@ -6,10 +6,13 @@ import com.example.kitchen.dto.CartDetailDto;
 import com.example.kitchen.modal.CartDetails;
 import com.example.kitchen.modal.DishDetails;
 import com.example.kitchen.modal.OrderedDetails;
+import com.example.kitchen.modal.User;
 import com.example.kitchen.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,7 +34,7 @@ public class UserService {
                 int userId = jsonObject.has("userId") ? jsonObject.getInt("userId") : 0;
                 CartDetails cartDetails = new CartDetails();
                 if (dishId > 0 && userId > 0) {
-                    cartDetails.setCount(1);
+                    cartDetails.setQuantity(1);
                     cartDetails.setUserId(userId);
                     cartDetails.setDishId(dishId);
                     userDao.addToCart(cartDetails);
@@ -65,7 +68,7 @@ public class UserService {
                             DishDetails dishDetails = dishDao.getDishById(obj.getDishId());
                             if (dishDetails != null) {
                                 cartDetailDto.setDishDetail(dishDetails);
-                                cartDetailDto.setCount(obj.getCount());
+                                cartDetailDto.setCount(obj.getQuantity());
                                 cartDetailDtoList.add(cartDetailDto);
                             }
                         }
@@ -78,7 +81,6 @@ public class UserService {
         }
         return null;
     }
-
 
     public boolean deleteItem(int userId, int dishId) {
         try {
@@ -97,7 +99,7 @@ public class UserService {
             if (userId > 0 && dishId > 0) {
                 CartDetails cartDetails = userDao.getCartDetails(dishId, userId);
                 if (cartDetails != null) {
-                    cartDetails.setCount(cartDetails.getCount() + 1);
+                    cartDetails.setQuantity(cartDetails.getQuantity() + 1);
                 }
                 return userDao.addToCart(cartDetails);
             }
@@ -112,8 +114,8 @@ public class UserService {
         try {
             if (userId > 0 && dishId > 0) {
                 CartDetails cartDetails = userDao.getCartDetails(dishId, userId);
-                if (cartDetails != null && cartDetails.getCount() > 1) {
-                    cartDetails.setCount(cartDetails.getCount() - 1);
+                if (cartDetails != null && cartDetails.getQuantity() > 1) {
+                    cartDetails.setQuantity(cartDetails.getQuantity() - 1);
                     return userDao.addToCart(cartDetails);
                 }
             }
@@ -144,5 +146,10 @@ public class UserService {
             log.error("Error in deleteItem()! ", e);
         }
         return false;
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (User) authentication.getPrincipal();
     }
 }
