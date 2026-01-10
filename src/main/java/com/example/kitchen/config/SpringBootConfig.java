@@ -27,6 +27,15 @@ public class SpringBootConfig {
     @Value("${spring.datasource.password}")
     private String password;
 
+    @Value("${spring.jpa.hibernate.ddl-auto}")
+    private String ddl;
+
+    @Value("${spring.jpa.properties.hibernate.dialect}")
+    private String dialect;
+
+    @Value("${spring.jpa.properties.hibernate.format_sql}")
+    private String showSql;
+
     @Bean
     public DataSource getDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
@@ -41,6 +50,11 @@ public class SpringBootConfig {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource);
         sessionFactory.setPackagesToScan("com.example.kitchen.modal");
+        Properties hibernateProperties = new Properties();
+        hibernateProperties.put("hibernate.dialect", dialect);
+        hibernateProperties.put("hibernate.hbm2ddl.auto", ddl);
+        hibernateProperties.put("hibernate.show_sql", showSql);
+        sessionFactory.setHibernateProperties(hibernateProperties);
         return sessionFactory;
     }
 

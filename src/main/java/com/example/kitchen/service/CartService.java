@@ -194,7 +194,7 @@ public class CartService {
         return dto;
     }
 
-    private CartSummaryDto calculateSummary(int userId) {
+    public CartSummaryDto calculateSummary(int userId) {
         List<CartDetails> cartItems = cartDao.findAllByUserId(userId);
 
         CartSummaryDto summary = new CartSummaryDto();

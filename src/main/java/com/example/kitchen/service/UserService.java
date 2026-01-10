@@ -135,7 +135,7 @@ public class UserService {
                         OrderedDetails orderedDetails = new OrderedDetails();
                         if (cartDetails != null) {
                             orderedDetails.setUserId(cartDetails.getUserId());
-                            orderedDetails.setCreateDate(CommonUtils.getCurrentTimestamp());
+                            // orderDate is auto-set by @CreationTimestamp
                         }
                     }
                 }

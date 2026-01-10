@@ -19,7 +19,7 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
             log.info("ApplicationStartupListener.onApplicationEvent");
-            emailService.sendStartupMail();
+//            emailService.sendStartupMail();
         } catch (Exception e) {
             log.error("Error in onApplicationEvent ", e);
         }

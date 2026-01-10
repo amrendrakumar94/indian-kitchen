@@ -39,17 +39,17 @@ public class OrderService {
                 String address = jsonObj.has("address") ? jsonObj.getString("address") : "";
                 String orderIds = jsonObj.has("order_ids") ? jsonObj.getString("order_ids") : "";
 
-                if (userId > 0 && CommonUtils.isNotNullAndNotEmpty(address) && CommonUtils.isNotNullAndNotEmpty(orderIds)) {
+                if (userId > 0 && CommonUtils.isNotNullAndNotEmpty(address)
+                        && CommonUtils.isNotNullAndNotEmpty(orderIds)) {
                     List<OrderedDetails> orderedDetailList = orderDao.getAllOrderByUserId(userId);
                     if (orderedDetailList != null && !orderedDetailList.isEmpty()) {
 
                     }
                     OrderedDetails orderedDetails = new OrderedDetails();
-                    orderedDetails.setOrderIds(orderIds);
-                    orderedDetails.setAddress(address);
+                    // Legacy code - consider using OrderManagementService instead
+                    // The new entity structure doesn't support orderIds and address fields
                     orderedDetails.setUserId(userId);
-                    orderedDetails.setCreateDate(CommonUtils.getCurrentTimestamp());
-                    orderedDetails.setStatus("");
+                    orderedDetails.setStatus("pending");
                     return orderDao.saveOrder(orderedDetails);
                 }
 
