@@ -3,11 +3,13 @@ package com.example.kitchen.service;
 import com.example.kitchen.dao.DishDao;
 import com.example.kitchen.dao.UserDao;
 import com.example.kitchen.dto.*;
+import com.example.kitchen.infrastructure.cache.CacheNames;
 import com.example.kitchen.modal.CartDetails;
 import com.example.kitchen.modal.DishDetails;
 import com.example.kitchen.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,9 @@ public class DishService {
     private final DishDao dishDao;
     private final UserDao userDao;
 
+    @Cacheable(cacheNames = CacheNames.MENU,
+            key = "#userId + ':' + (#cuisineType == null ? 'ALL' : #cuisineType)",
+            unless = "#result == null")
     public DishDetailsDto getAllDishes(int userId, String cuisineType) {
         DishDetailsDto dishDetailsDto = new DishDetailsDto();
         try {
@@ -58,6 +63,9 @@ public class DishService {
         return dishDetailsDto;
     }
 
+    @Cacheable(cacheNames = CacheNames.MENU,
+            key = "'details:' + #dishIds",
+            unless = "#result == null || #result.isEmpty()")
     public List<DishDetails> getDishDetailsByDishIds(String dishIds) {
         try {
             List<DishDetails> dishDetailsList = dishDao.getDishDetailsByDishIds(dishIds);
@@ -68,6 +76,9 @@ public class DishService {
         return null;
     }
 
+    @Cacheable(cacheNames = CacheNames.MENU_SEARCH,
+            key = "T(java.util.Objects).hash(#request.toString())",
+            unless = "#result == null || #result.products == null")
     public ProductSearchResponseDto searchProducts(ProductSearchRequestDto request) {
         ProductSearchResponseDto response = new ProductSearchResponseDto();
         try {

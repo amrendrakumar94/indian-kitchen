@@ -37,17 +37,22 @@ public class OrderController {
 
     // New order management endpoints
     @PostMapping("orders/place")
-    public ResponseEntity<ResponseDto> placeOrder(@RequestBody PlaceOrderRequest request) {
+    public ResponseEntity<ResponseDto> placeOrder(
+            @RequestBody PlaceOrderRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
         try {
             int userId = getCurrentUserId();
 
-            OrderResponseDto response = orderManagementService.placeOrder(userId, request);
+            OrderResponseDto response = orderManagementService.placeOrder(userId, request, idempotencyKey);
 
             return ResponseDto.successResponse(response, "Order placed successfully");
 
         } catch (IllegalArgumentException e) {
             log.error("Validation error in placeOrder: {}", e.getMessage());
             return ResponseDto.errorResponse(e.getMessage(), "Validation error");
+        } catch (IllegalStateException e) {
+            log.error("State error in placeOrder: {}", e.getMessage());
+            return ResponseDto.errorResponse(e.getMessage(), "Order already in progress");
         } catch (Exception e) {
             log.error("Error in placeOrder", e);
             return ResponseDto.errorResponse("Failed to place order", e.getMessage());
@@ -62,8 +67,7 @@ public class OrderController {
         try {
             int userId = getCurrentUserId();
 
-            OrderManagementService.OrderHistoryResponseDto response = orderManagementService.getOrders(userId, page,
-                    pageSize, status);
+            OrderHistoryResponseDto response = orderManagementService.getOrders(userId, page, pageSize, status);
 
             return ResponseDto.successResponse(response, "Orders fetched successfully");
 

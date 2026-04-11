@@ -3,20 +3,30 @@ package com.example.kitchen.service;
 import com.example.kitchen.dao.CartDao;
 import com.example.kitchen.dao.OrderDao;
 import com.example.kitchen.dto.*;
+import com.example.kitchen.infrastructure.cache.CacheNames;
+import com.example.kitchen.infrastructure.idempotency.OrderIdempotencyService;
+import com.example.kitchen.infrastructure.lock.DistributedLockService;
+import com.example.kitchen.infrastructure.messaging.event.OrderLifecycleEvent;
+import com.example.kitchen.infrastructure.messaging.producer.OrderEventPublisher;
 import com.example.kitchen.modal.CartDetails;
 import com.example.kitchen.modal.OrderItem;
 import com.example.kitchen.modal.OrderedDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -26,13 +36,33 @@ public class OrderManagementService {
     private final OrderDao orderDao;
     private final CartDao cartDao;
     private final CartService cartService;
+    private final DistributedLockService distributedLockService;
+    private final OrderEventPublisher orderEventPublisher;
+    private final OrderIdempotencyService orderIdempotencyService;
 
     private static final BigDecimal TAX_RATE = new BigDecimal("0.09"); // 9%
     private static final BigDecimal DELIVERY_CHARGE = new BigDecimal("40");
     private static final BigDecimal FREE_DELIVERY_THRESHOLD = new BigDecimal("500");
+    private static final Duration ORDER_LOCK_TTL = Duration.ofSeconds(15);
 
     @Transactional
-    public OrderResponseDto placeOrder(int userId, PlaceOrderRequest request) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.ORDER_DETAILS, allEntries = true)
+    })
+    public OrderResponseDto placeOrder(int userId, PlaceOrderRequest request, String idempotencyKey) {
+        OrderResponseDto cachedResponse = orderIdempotencyService.findResponse(userId, idempotencyKey, request);
+        if (cachedResponse != null) {
+            log.info("Returning cached idempotent order response. userId: {}", userId);
+            return cachedResponse;
+        }
+
+        String lockKey = "lock:order:user:" + userId;
+        String lockToken = distributedLockService.tryAcquire(lockKey, ORDER_LOCK_TTL);
+        if (lockToken == null) {
+            throw new IllegalStateException("Another order request is already being processed for this user");
+        }
+
         try {
             // Validate delivery address
             if (request.getDeliveryAddress() == null) {
@@ -149,14 +179,23 @@ public class OrderManagementService {
             summary.setTotal(savedOrder.getTotal());
             response.setSummary(summary);
 
+            orderIdempotencyService.storeResponse(userId, idempotencyKey, request, response);
+
+            orderEventPublisher.publishAfterCommit(buildOrderLifecycleEvent("order.created", savedOrder));
+
             return response;
 
         } catch (Exception e) {
             log.error("Error in placeOrder(). userId: {}", userId, e);
             throw e;
+        } finally {
+            distributedLockService.release(lockKey, lockToken);
         }
     }
 
+    @Cacheable(cacheNames = CacheNames.ORDER_LIST,
+            key = "#userId + ':' + (#page == null ? 1 : #page) + ':' + (#pageSize == null ? 10 : #pageSize) + ':' + (#status == null ? 'ALL' : #status)",
+            unless = "#result == null")
     public OrderHistoryResponseDto getOrders(int userId, Integer page, Integer pageSize, String status) {
         try {
             int currentPage = page != null ? page : 1;
@@ -223,6 +262,9 @@ public class OrderManagementService {
         }
     }
 
+    @Cacheable(cacheNames = CacheNames.ORDER_DETAILS,
+            key = "#userId + ':' + #orderId",
+            unless = "#result == null")
     public OrderDetailsDto getOrderDetails(int userId, String orderId) {
         try {
             OrderedDetails order = orderDao.findByOrderId(orderId);
@@ -300,6 +342,10 @@ public class OrderManagementService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ORDER_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheNames.ORDER_DETAILS, allEntries = true)
+    })
     public boolean cancelOrder(int userId, String orderId, String reason) {
         try {
             OrderedDetails order = orderDao.findByOrderId(orderId);
@@ -313,7 +359,13 @@ public class OrderManagementService {
                 throw new IllegalArgumentException("Only pending orders can be cancelled");
             }
 
-            return orderDao.updateOrderStatus(order.getId(), "cancelled", reason);
+            boolean cancelled = orderDao.updateOrderStatus(order.getId(), "cancelled", reason);
+            if (cancelled) {
+                order.setStatus("cancelled");
+                orderEventPublisher.publishAfterCommit(buildOrderLifecycleEvent("order.cancelled", order));
+            }
+
+            return cancelled;
 
         } catch (Exception e) {
             log.error("Error in cancelOrder(). userId: {}, orderId: {}", userId, orderId, e);
@@ -328,10 +380,17 @@ public class OrderManagementService {
         return "ORD-" + timestamp;
     }
 
-    // Helper DTO for order history response
-    @lombok.Data
-    public static class OrderHistoryResponseDto {
-        private List<OrderHistoryDto> orders = new ArrayList<>();
-        private PaginationDto pagination = new PaginationDto();
+    private OrderLifecycleEvent buildOrderLifecycleEvent(String eventType, OrderedDetails order) {
+        return OrderLifecycleEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType(eventType)
+                .aggregateType("order")
+                .aggregateId(order.getOrderId())
+                .occurredAt(LocalDateTime.now())
+                .userId(order.getUserId())
+                .orderNumber(order.getOrderNumber())
+                .orderStatus(order.getStatus())
+                .total(order.getTotal())
+                .build();
     }
 }
